@@ -1,0 +1,21 @@
+# --- Web backend ---
+flask==3.0.3
+flask-cors==4.0.0
+flask-sqlalchemy==3.1.1
+
+# --- Database ---
+sqlalchemy==2.0.32
+psycopg2-binary==2.9.9
+
+# --- Task queue ---
+celery==5.3.6
+redis==5.0.8
+
+# --- Machine Learning / RL ---
+stable-baselines3==2.3.2
+gymnasium==0.29.1
+numpy==1.26.4
+ortools==9.10.4067
+
+# --- Utilities ---
+dataclasses==0.6; python_version<"3.7"
