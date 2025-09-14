@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block title %}Settings - TimeWeave AI{% endblock %}
+
+{% block content %}
+<style>
+    /* This design is a direct and precise match to your login/dashboard style reference */
+    .settings-container {
+        padding-top: 2rem;
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .glass-card {
+        background: var(--card-bg);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .glass-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 25px 70px rgba(0, 0, 0, 0.7);
+    }
+
+    .form-control {
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1rem;
+        color: var(--text-primary);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .form-control:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(157, 78, 221, 0.2);
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, var(--accent), var(--accent-alt));
+        border: none;
+        color: #fff;
+        font-weight: 600;
+        padding: 0.85rem 1.5rem;
+        border-radius: 12px;
+        transition: all 0.2s ease;
+    }
+    .btn-submit:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 6px 20px rgba(157, 78, 221, 0.4);
+    }
+
+    .student-list-group {
+        max-height: 250px;
+        overflow-y: auto;
+    }
+    .list-group-item {
+        background-color: rgba(255, 255, 255, 0.05);
+        border-color: var(--border);
+        color: var(--text-primary);
+    }
+
+    hr {
+        border-color: var(--border);
+        opacity: 0.25;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="settings-container">
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="glass-card mb-4">
+                <h4 class="mb-3"><i class="fas fa-university me-2" style="color: var(--accent);"></i>Institute Details</h4>
+                <form action="{{ url_for('update_institute_settings') }}" method="POST">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="institute_name" name="institute_name" value="{{ institute.name }}" required>
+                                <label for="institute_name">Institute Name</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                             <div class="form-floating">
+                                <input type="text" class="form-control" id="username" name="username" value="{{ institute.username }}" required>
+                                <label for="username">Username</label>
+                            </div>
+                        </div>
+                    </div>
+                     <div class="form-floating mb-3">
+                        <input type="email" class="form-control" id="email" name="email" value="{{ institute.email }}" required>
+                        <label for="email">Official Email</label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="db_url" name="db_url" value="{{ institute.db_url or '' }}" placeholder="Database Connection URL">
+                        <label for="db_url">Database Connection URL</label>
+                    </div>
+                    <button type="submit" class="btn-submit"><i class="fas fa-save me-2"></i>Save Institute Details</button>
+                </form>
+            </div>
+
+            <div class="glass-card">
+                 <h4 class="mb-3"><i class="fas fa-project-diagram me-2" style="color: var(--accent);"></i>Database Schema Mapping</h4>
+                 <form action="{{ url_for('update_schema_settings') }}" method="POST">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label text-secondary small">Courses</label>
+                            <input type="text" class="form-control mb-2" name="courses_table" placeholder="Table (e.g., courses)" value="{{ config.get('courses', {}).get('table', '') }}" required>
+                            <input type="text" class="form-control" name="courses_col_name" placeholder="Column (e.g., name)" value="{{ config.get('courses', {}).get('col_name', '') }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-secondary small">Faculty</label>
+                            <input type="text" class="form-control mb-2" name="faculty_table" placeholder="Table (e.g., faculty)" value="{{ config.get('faculty', {}).get('table', '') }}" required>
+                            <input type="text" class="form-control" name="faculty_col_name" placeholder="Column (e.g., name)" value="{{ config.get('faculty', {}).get('col_name', '') }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-secondary small">Rooms</label>
+                            <input type="text" class="form-control mb-2" name="rooms_table" placeholder="Table (e.g., rooms)" value="{{ config.get('rooms', {}).get('table', '') }}" required>
+                            <input type="text" class="form-control" name="rooms_col_name" placeholder="Column (e.g., name)" value="{{ config.get('rooms', {}).get('col_name', '') }}" required>
+                        </div>
+                    </div>
+                    <hr>
+                    <label class="form-label text-secondary small">Course-Faculty Mapping Table</label>
+                    <div class="row">
+                        <div class="col-md-4">
+                             <input type="text" class="form-control" name="map_table" placeholder="Mapping Table" value="{{ config.get('map', {}).get('table', '') }}" required>
+                        </div>
+                        <div class="col-md-4">
+                             <input type="text" class="form-control" name="map_col_course_fk" placeholder="Course Foreign Key" value="{{ config.get('map', {}).get('col_course_fk', '') }}" required>
+                        </div>
+                        <div class="col-md-4">
+                             <input type="text" class="form-control" name="map_col_faculty_fk" placeholder="Faculty Foreign Key" value="{{ config.get('map', {}).get('col_faculty_fk', '') }}" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit mt-3"><i class="fas fa-link me-2"></i>Save Schema & Retrain</button>
+                 </form>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="glass-card h-100">
+                <h4 class="mb-3"><i class="fas fa-users me-2" style="color: var(--accent);"></i>Student Management</h4>
+                <form action="{{ url_for('add_student') }}" method="POST">
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="student_name" name="student_name" placeholder="Student Full Name" required>
+                        <label for="student_name">Student Full Name</label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="student_username" name="student_username" placeholder="Student Username" required>
+                        <label for="student_username">Student Username</label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Create Password" required>
+                        <label for="password">Create Password</label>
+                    </div>
+                    <button type="submit" class="btn-submit w-100"><i class="fas fa-user-plus me-2"></i>Add Student</button>
+                </form>
+                <hr>
+                <h5 class="mb-3 text-secondary">Existing Students</h5>
+                {% if students %}
+                    <ul class="list-group student-list-group">
+                        {% for student in students %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-user-graduate me-2 text-secondary"></i> {{ student.name }}</span>
+                                <small class="text-secondary">@{{ student.username }}</small>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <div class="text-center text-secondary py-4">
+                        <p>No students have been added yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Student Dashboard - TimeWeave AI{% endblock %}
+
+{% block content %}
+<style>
+    /* This design is a direct and precise match to your login/signup style reference */
+    .dashboard-container {
+        padding-top: 2rem;
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .glass-card {
+        background: var(--card-bg);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 2.5rem;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .glass-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 25px 70px rgba(0, 0, 0, 0.7);
+    }
+
+    .table {
+        color: var(--text-primary);
+        border-color: var(--border);
+    }
+    .table-bordered {
+        border: 1px solid var(--border);
+    }
+    .table th, .table td {
+        border: 1px solid var(--border);
+    }
+    .table thead {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .logout-btn {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        color: var(--text-secondary);
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+        transition: all 0.2s ease;
+    }
+    .logout-btn:hover {
+        background: var(--accent);
+        color: #fff;
+        border-color: var(--accent);
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="dashboard-container">
+    <div class="glass-card">
+        <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
+            <div>
+                <h2 class="mb-1">Welcome, {{ student.name }}</h2>
+                <p class="text-secondary mb-0">Here is your latest timetable.</p>
+            </div>
+            <a href="{{ url_for('logout') }}" class="logout-btn mt-2 mt-md-0">
+                <i class="fas fa-sign-out-alt me-2"></i>Logout
+            </a>
+        </div>
+
+        {% if generation %}
+            {% for r_idx in range(generation.rooms|length) %}
+                <h4 class="mt-4 mb-3" style="color: var(--accent);">
+                    <i class="fas fa-door-open me-2"></i>{{ generation.rooms[r_idx] }}
+                </h4>
+                <div class="table-responsive">
+                    <table class="table table-bordered text-center">
+                        <thead>
+                            <tr>
+                                <th>Day</th>
+                                <th>09:00</th>
+                                <th>10:00</th>
+                                <th>11:00</th>
+                                <th>12:00</th>
+                                <!-- Lunch break visually represented by skipping a column header -->
+                                <th>14:00</th>
+                                <th>15:00</th>
+                                <th>16:00</th>
+                                <th>17:00</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] %}
+                            {% for d_idx in range(days|length) %}
+                            <tr>
+                                <td class="fw-bold">{{ days[d_idx] }}</td>
+                                {% for h_idx in range(8) %}
+                                    {% if h_idx != 4 %} {# Skip lunch break data index #}
+                                        <td>
+                                            {% set c_id_str = generation.schedule[d_idx][h_idx][r_idx] | string %}
+                                            {% set course = generation.courses.get(c_id_str, '-') %}
+                                            {{ course }}
+                                        </td>
+                                    {% endif %}
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center text-secondary py-5">
+                <i class="fas fa-calendar-times fa-4x mb-3"></i>
+                <h4 class="mb-2">No Timetable Published</h4>
+                <p>Your institute has not generated a timetable yet. Please check back later.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

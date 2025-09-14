@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% block title %}Sign Up - TimeWeave AI{% endblock %}
+
+{% block content %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+
+:root {
+  --background-dark: #0a0a0f;
+  --accent: #9d4edd;
+  --accent-alt: #6a0dad;
+  --text-primary: #f1f1f1;
+  --text-secondary: #b5b5b5;
+  --card-bg: rgba(20, 20, 30, 0.7);
+  --border: rgba(255, 255, 255, 0.08);
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: var(--background-dark);
+  color: var(--text-primary);
+  margin: 0;
+  overflow: hidden;
+}
+
+.bg-blob {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.5;
+  animation: float 20s ease-in-out infinite alternate;
+}
+.bg-blob.one { width: 400px; height: 400px; background: var(--accent); top: 10%; left: 10%; }
+.bg-blob.two { width: 500px; height: 500px; background: var(--accent-alt); bottom: 10%; right: 15%; }
+
+@keyframes float {
+  from { transform: translateY(0) translateX(0); }
+  to { transform: translateY(-40px) translateX(30px); }
+}
+
+.signup-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+.signup-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  padding: 3rem 2rem;
+  border-radius: 20px;
+  width: 420px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+.signup-card:hover { transform: translateY(-4px); }
+
+#mouse-glow {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(157,78,221,0.15), transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.signup-card:hover #mouse-glow { opacity: 1; }
+
+.brand-title { font-size: 1.9rem; font-weight: 600; margin-top: 0.5rem; }
+.brand-sub { color: var(--text-secondary); font-size: 0.9rem; }
+
+.form-floating { margin-bottom: 1.2rem; }
+.form-control {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+  color: var(--text-primary);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.form-control:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(157,78,221,0.2);
+}
+
+.btn-submit {
+  background: linear-gradient(135deg, var(--accent), var(--accent-alt));
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  padding: 0.85rem;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+.btn-submit:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(157,78,221,0.4);
+}
+.btn-submit:active { transform: scale(0.97); }
+
+a { color: var(--accent); text-decoration: none; font-weight: 500; }
+a:hover { color: #fff; }
+</style>
+
+<div class="bg-blob one"></div>
+<div class="bg-blob two"></div>
+
+<div class="signup-container">
+  <div class="signup-card">
+    <div id="mouse-glow"></div>
+    <div class="text-center mb-4">
+      <i class="fas fa-user-plus fa-3x" style="color: var(--accent);"></i>
+      <h1 class="brand-title">Create Institute Account</h1>
+      <p class="brand-sub">Join the TimeWeave AI Platform</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('signup') }}">
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <div class="form-floating">
+            <input type="text" class="form-control" id="institute_name" name="institute_name" placeholder="Institute Name" required>
+            <label for="institute_name">Institute Name</label>
+          </div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <div class="form-floating">
+            <input type="text" class="form-control" id="username" name="username" placeholder="Username" required>
+            <label for="username">Username</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-floating mb-3">
+        <input type="email" class="form-control" id="email" name="email" placeholder="Official Email" required>
+        <label for="email">Official Email</label>
+      </div>
+
+      <div class="form-floating mb-3">
+        <input type="password" class="form-control" id="password" name="password" placeholder="Create Password" required>
+        <label for="password">Create Password</label>
+      </div>
+
+      <div class="form-floating mb-3">
+        <input type="text" class="form-control" id="db_url" name="db_url" placeholder="Database Connection URL" required>
+        <label for="db_url">Database Connection URL</label>
+      </div>
+
+      <p class="text-secondary small text-center mt-2 px-2">
+        <i class="fas fa-info-circle me-1"></i>
+        Your custom AI model will begin training immediately after registration.
+      </p>
+
+      <!-- Submit Button -->
+      <button type="submit" class="btn-submit mt-3">
+        <i class="fas fa-rocket me-2"></i> Register & Train AI
+      </button>
+    </form>
+
+    <div class="text-center mt-4">
+      <p class="text-secondary small">
+        Already have an account? <a href="{{ url_for('login') }}">Login Here</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('mousemove', e => {
+  const card = document.querySelector('.signup-card');
+  const glow = document.getElementById('mouse-glow');
+  if(card && glow){
+    const rect = card.getBoundingClientRect();
+    glow.style.left = `${e.clientX - rect.left}px`;
+    glow.style.top = `${e.clientY - rect.top}px`;
+  }
+});
+</script>
+{% endblock %}
