@@ -1,293 +1,255 @@
-{% extends "base.html" %}
-{% block title %}Dashboard - TimeWeave AI{% endblock %}
+{% extends "layout.html" %}
+{% block title %}Dashboard - {{ institute.name }}{% endblock %}
 
-{% block content %}
+{% block head_styles %}
 <style>
-    /* This design is a direct and precise match to your login.html style reference */
-    .dashboard-container {
-        padding-top: 2rem;
-        animation: fadeInUp 0.6s ease-out;
-    }
-
-    .glass-card {
+    .welcome-header {
         background: var(--card-bg);
-        backdrop-filter: blur(20px);
         border: 1px solid var(--border);
-        border-radius: 20px;
         padding: 2rem;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-        position: relative;
-        overflow: hidden;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-radius: 1rem;
+        margin-bottom: 2rem;
+        text-align: center;
     }
-
-    .glass-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 25px 70px rgba(0, 0, 0, 0.7);
+    .welcome-header h1 {
+        color: var(--text-primary);
+        font-weight: 600;
     }
-
-    .form-control {
+    .welcome-header p {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+    }
+    .content-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        padding: 2rem;
+        border-radius: 1rem;
+        margin-bottom: 2rem;
+    }
+    .form-label {
+        color: var(--text-secondary);
+        margin-bottom: 0.5rem;
+    }
+    .form-control, .form-select {
         background: transparent;
         border: 1px solid var(--border);
         border-radius: 12px;
-        padding: 1rem;
+        padding: 0.75rem 1rem;
         color: var(--text-primary);
-        transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
-
-    .form-control:focus {
+    .form-control:focus, .form-select:focus {
         border-color: var(--accent);
-        box-shadow: 0 0 0 3px rgba(157, 78, 221, 0.2);
+        box-shadow: 0 0 0 3px rgba(157,78,221,0.2);
+        background-color: var(--background-dark);
+        color: var(--text-primary);
     }
-
+    textarea.form-control {
+        min-height: 120px;
+    }
     .btn-submit {
-        background: linear-gradient(135deg, var(--accent), var(--accent-alt));
-        border: none;
-        color: #fff;
-        font-weight: 600;
-        padding: 0.85rem 1.5rem;
-        border-radius: 12px;
-        transition: all 0.2s ease;
+      background: linear-gradient(135deg, var(--accent), var(--accent-alt));
+      border: none;
+      color: #fff;
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      transition: all 0.2s ease;
     }
-
     .btn-submit:hover {
-        transform: translateY(-2px) scale(1.02);
-        box-shadow: 0 6px 20px rgba(157, 78, 221, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(157,78,221,0.4);
     }
+    .table-dark-custom th, .table-dark-custom td {
+        white-space: nowrap;
+    }
+    .action-btn {
+        font-size: 0.85rem;
+        padding: 0.3rem 0.8rem;
+        border-radius: 8px;
+        text-decoration: none;
+        color: #fff;
+        border: none;
+        margin-right: 0.5rem;
+    }
+    .btn-view { background-color: var(--info); }
+    .btn-export { background-color: var(--accent-alt); }
+    .btn-publish { background-color: var(--success); }
 
-    .table {
-        color: var(--text-primary);
-        border-color: var(--border);
-    }
-    .table-hover > tbody > tr:hover > * {
-        background-color: rgba(255, 255, 255, 0.05);
-        color: var(--text-primary);
-    }
-    .table thead th {
-        border-bottom-width: 1px;
-    }
-
+    /* Modal Styling */
     .modal-content {
         background: var(--card-bg);
-        backdrop-filter: blur(25px);
         border: 1px solid var(--border);
-        border-radius: 18px;
         color: var(--text-primary);
     }
-    .modal-header, .modal-footer {
-        border-color: var(--border);
-    }
-
-    @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+    .modal-header { border-bottom: 1px solid var(--border); }
+    .btn-close-white { filter: invert(1) grayscale(100%) brightness(200%); }
+    .timetable-slot {
+        background-color: rgba(157, 78, 221, 0.1);
+        border-left: 3px solid var(--accent);
+        padding: 0.5rem; border-radius: 8px; text-align: left; margin-bottom: 0.5rem;
     }
 </style>
+{% endblock %}
 
-<div class="dashboard-container">
-    <!-- Header Card -->
-    <div class="glass-card mb-4 d-flex justify-content-between align-items-center flex-wrap">
-        <div>
-            <h2 class="mb-1">Welcome back, {{ institute.name }}</h2>
-            <p class="text-secondary mb-0">Your AI-powered scheduling hub</p>
+{% block content %}
+<div class="welcome-header">
+    <h1>Welcome, {{ institute.name }}</h1>
+    <p>Generate and manage your academic timetables with the power of AI.</p>
+</div>
+
+<div class="row">
+    <div class="col-lg-5 mb-4">
+        <div class="content-card">
+            <h4><i class="fas fa-magic me-2 text-accent"></i>Generate New Timetable</h4>
+            <hr style="border-color: var(--border); margin: 1rem 0 1.5rem;">
+            <form method="POST" action="{{ url_for('generate_timetable') }}">
+                <div class="mb-3">
+                    <label for="course" class="form-label">Course</label>
+                    <input type="text" class="form-control" id="course" name="course" placeholder="e.g., B.Tech" required>
+                </div>
+                <div class="row">
+                    <div class="col-md-8 mb-3">
+                        <label for="branch" class="form-label">Branch</label>
+                        <input type="text" class="form-control" id="branch" name="branch" placeholder="e.g., Computer Science or CSE" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="year" class="form-label">Year</label>
+                        <input type="number" class="form-control" id="year" name="year" placeholder="e.g., 1" required min="1" max="5">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="nlp_text" class="form-label">Describe Constraints</label>
+                    <textarea class="form-control" id="nlp_text" name="nlp_text" rows="4" placeholder="e.g., 'No classes after 5 pm.' or 'Data Structures must be in Room C-101.'"></textarea>
+                </div>
+                <button type="submit" class="btn-submit w-100 mt-3">
+                    <i class="fas fa-cogs me-2"></i>Generate Timetable
+                </button>
+            </form>
         </div>
-        <div id="model-status-badge" class="mt-2 mt-md-0">
-            {% if institute.model_training_status == 'completed' %}
-                <span class="badge fs-6" style="background-color: var(--success);"><i class="fas fa-check-circle me-1"></i> AI Model Ready</span>
-            {% elif institute.model_training_status == 'training' %}
-                <span class="badge fs-6" style="background-color: var(--info);"><i class="fas fa-cog fa-spin me-1"></i> AI Training In Progress...</span>
-            {% elif institute.model_training_status == 'failed' %}
-                <span class="badge fs-6" style="background-color: var(--danger);"><i class="fas fa-exclamation-triangle me-1"></i> Training Failed</span>
+    </div>
+    <div class="col-lg-7 mb-4">
+        <div class="content-card">
+            <h4><i class="fas fa-history me-2 text-accent"></i>Generated Timetables</h4>
+             <hr style="border-color: var(--border); margin: 1rem 0 1.5rem;">
+            {% if timetables %}
+            <div class="table-responsive">
+                <table class="table table-dark-custom">
+                    <thead>
+                        <tr>
+                            <th>Course / Branch / Year</th>
+                            <th>Generated On</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for timetable in timetables %}
+                        <tr>
+                            <td>{{ timetable.course }} / {{ timetable.branch }} / Year {{ timetable.year }}</td>
+                            <td>{{ timetable.created_at.strftime('%b %d, %Y %I:%M %p') }}</td>
+                            <td>
+                                {% if timetable.is_published %}
+                                    <span class="badge bg-success">Published</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Draft</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button class="action-btn btn-view" data-bs-toggle="modal" data-bs-target="#timetableModal" data-timetable-id="{{ timetable.id }}">
+                                    <i class="fas fa-eye me-1"></i>View
+                                </button>
+                                <a href="{{ url_for('export_timetable', timetable_id=timetable.id) }}" class="action-btn btn-export">
+                                    <i class="fas fa-file-csv me-1"></i>Export
+                                </a>
+                                {% if not timetable.is_published %}
+                                <a href="{{ url_for('publish_timetable', timetable_id=timetable.id) }}" class="action-btn btn-publish">
+                                    <i class="fas fa-upload me-1"></i>Publish
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             {% else %}
-                <span class="badge fs-6" style="background-color: var(--warning);"><i class="fas fa-clock me-1"></i> AI Training Queued</span>
+            <p class="text-secondary text-center mt-4">No timetables generated yet. Use the form to create your first one!</p>
             {% endif %}
         </div>
     </div>
-
-    <!-- Generate Section (conditionally shown) -->
-    {% if institute.model_training_status == 'completed' %}
-    <div class="glass-card mb-4">
-        <h4 class="mb-3"><i class="fas fa-magic me-2" style="color: var(--accent);"></i>Generate New Timetable</h4>
-        <form method="POST" action="{{ url_for('generate_timetable') }}">
-            <div class="form-floating mb-3">
-                <textarea class="form-control" style="height: 100px" id="nlp_text" name="nlp_text" placeholder="Describe constraints..."></textarea>
-                <label for="nlp_text">Describe constraints... e.g., 'Dr. Smith prefers mornings'</label>
-            </div>
-            <button type="submit" class="btn-submit"><i class="fas fa-rocket me-2"></i>Generate</button>
-        </form>
-    </div>
-    {% endif %}
-
-    <!-- Recent Generations -->
-    <div class="glass-card">
-        <h4 class="mb-3"><i class="fas fa-history me-2" style="color: var(--accent);"></i>Recent Generations</h4>
-        {% if generations %}
-        <div class="table-responsive">
-            <table class="table table-borderless table-hover align-middle">
-                <thead>
-                    <tr>
-                        <th>Generated On</th>
-                        <th>Custom Requirements</th>
-                        <th>Status</th>
-                        <th class="text-end">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="generations-table-body">
-                    {% for gen in generations %}
-                    <tr id="gen-row-{{ gen.id }}" data-gen-id="{{ gen.id }}">
-                        <td>{{ gen.generation_time.strftime('%b %d, %Y %H:%M') }}</td>
-                        <td class="text-secondary"><em>{{ gen.nlp_query or 'None' }}</em></td>
-                        <td class="status-cell">
-                            {% if gen.status == 'completed' %}
-                                <span class="badge" style="background-color: var(--success);"><i class="fas fa-check me-1"></i>Completed</span>
-                            {% elif gen.status == 'processing' or gen.status == 'pending' %}
-                                <span class="badge" style="background-color: var(--info);"><i class="fas fa-cog fa-spin me-1"></i>Processing...</span>
-                            {% elif gen.status == 'failed' %}
-                                <span class="badge" style="background-color: var(--danger);"><i class="fas fa-times me-1"></i>Failed</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-end actions-cell">
-                             {% if gen.status == 'completed' %}
-                                <button class="btn btn-sm btn-outline-light" onclick="viewTimetable({{ gen.id }})"><i class="fas fa-eye"></i> View</button>
-                            {% elif gen.status == 'processing' or gen.status == 'pending' %}
-                                <span class="text-secondary small">Awaiting results...</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% else %}
-        <div class="text-center text-secondary py-5">
-            <i class="fas fa-calendar-times fa-3x mb-3"></i>
-            <h5>No timetables generated yet.</h5>
-            <p>Use the generator above to create your first one.</p>
-        </div>
-        {% endif %}
-    </div>
 </div>
 
-<!-- Timetable Modal -->
-<div class="modal fade" id="timetableModal" tabindex="-1">
-    <div class="modal-dialog modal-fullscreen">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-calendar-alt me-2" style="color: var(--accent);"></i>Generated Timetable</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="timetable-modal-body">
-                <div id="timetableContent" class="text-center">
-                    <div class="spinner-border" style="width: 3rem; height: 3rem; color: var(--accent);" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+<!-- Timetable View Modal -->
+<div class="modal fade" id="timetableModal" tabindex="-1" aria-labelledby="timetableModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="timetableModalLabel">Timetable Preview</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="modalBodyContent">
+        <!-- Timetable will be injected here by JavaScript -->
+        <div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Loading...</p></div>
+      </div>
     </div>
+  </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    function viewTimetable(generationId) {
-        const modal = new bootstrap.Modal(document.getElementById('timetableModal'));
-        const contentDiv = document.getElementById('timetableContent');
-        contentDiv.innerHTML = `<div class="spinner-border" style="width: 3rem; height: 3rem; color: var(--accent);" role="status"><span class="visually-hidden">Loading...</span></div>`;
-        modal.show();
+document.addEventListener('DOMContentLoaded', function () {
+    const timetableModal = document.getElementById('timetableModal');
+    if (timetableModal) {
+        timetableModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const timetableId = button.getAttribute('data-timetable-id');
+            const modalBody = document.getElementById('modalBodyContent');
 
-        fetch(`/timetable-status/${generationId}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'completed' && data.data) {
-                    contentDiv.innerHTML = generateTimetableHTML(data.data);
-                } else {
-                    contentDiv.innerHTML = '<p class="text-danger">Could not load timetable data.</p>';
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching timetable:', error);
-                contentDiv.innerHTML = '<p class="text-danger">An error occurred while fetching the timetable.</p>';
-            });
-    }
+            // Show loading spinner
+            modalBody.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Loading...</p></div>';
 
-    function generateTimetableHTML(data) {
-        let html = '';
-        const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-        const hours = ["09:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00"];
-
-        data.rooms.forEach((room, r_idx) => {
-            html += `<h4 class="mt-4 mb-3 text-white">${room}</h4>`;
-            html += '<div class="table-responsive"><table class="table table-bordered text-center" style="--bs-table-border-color: var(--border); --bs-table-color: var(--text-primary);">';
-            html += '<thead class="table-dark"><tr><th>Day</th>';
-            hours.forEach(h => html += `<th>${h}</th>`);
-            html += '</tr></thead><tbody>';
-
-            days.forEach((day, d_idx) => {
-                html += `<tr><td><b>${day}</b></td>`;
-                for (let h_idx = 0; h_idx < 8; h_idx++) {
-                    if (h_idx === 4) continue; // Skip lunch break index
-                    const courseId = data.schedule[d_idx][h_idx][r_idx];
-                    const courseName = data.courses[String(courseId)] || '-';
-                    html += `<td>${courseName}</td>`;
-                }
-                html += '</tr>';
-            });
-            html += '</tbody></table></div>';
-        });
-        return html;
-    }
-
-    // Check for status updates on processing tasks
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('tr[data-gen-id]').forEach(row => {
-            const statusCell = row.querySelector('.status-cell');
-            if (statusCell && statusCell.innerText.includes('Processing')) {
-                const genId = row.dataset.genId;
-                if (genId) {
-                    pollStatus(genId);
-                }
-            }
-        });
-    });
-
-    function pollStatus(generationId) {
-        const interval = setInterval(() => {
-            fetch(`/timetable-status/${generationId}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
+            fetch(`/timetable/${timetableId}/view`)
+                .then(response => response.json())
                 .then(data => {
-                    if (data.status === 'completed' || data.status === 'failed') {
-                        clearInterval(interval);
-                        updateRow(generationId, data);
+                    if (data.error) {
+                         modalBody.innerHTML = `<p class="text-danger">${data.error}</p>`;
+                         return;
                     }
+
+                    let tableHtml = '<div class="table-responsive"><table class="table table-dark-custom text-center"><thead><tr><th>Time</th>';
+                    data.days.forEach(day => {
+                        tableHtml += `<th>${day}</th>`;
+                    });
+                    tableHtml += '</tr></thead><tbody>';
+
+                    for (let h = 0; h < data.time_slots.length; h++) {
+                        tableHtml += `<tr><td>${data.time_slots[h]}</td>`;
+                        for (let d = 0; d < data.days.length; d++) {
+                            tableHtml += '<td>';
+                            if (data.schedule[d] && data.schedule[d][h]) {
+                                data.schedule[d][h].forEach((subjectIndex, r) => {
+                                    if (subjectIndex > 0) {
+                                        const subjectName = data.subjects[subjectIndex.toString()];
+                                        const roomName = data.rooms[r];
+                                        tableHtml += `<div class="timetable-slot"><strong>${subjectName}</strong><small class="d-block text-secondary">${roomName}</small></div>`;
+                                    }
+                                });
+                            }
+                            tableHtml += '</td>';
+                        }
+                        tableHtml += '</tr>';
+                    }
+                    tableHtml += '</tbody></table></div>';
+                    modalBody.innerHTML = tableHtml;
                 })
                 .catch(error => {
-                    console.error(`Polling failed for generation ${generationId}:`, error);
-                    clearInterval(interval); // Stop polling on error
+                    modalBody.innerHTML = `<p class="text-danger">Error loading timetable data.</p>`;
+                    console.error('Error:', error);
                 });
-        }, 5000); // Poll every 5 seconds
+        });
     }
-
-    function updateRow(generationId, data) {
-        const row = document.getElementById(`gen-row-${generationId}`);
-        if (!row) return;
-
-        const statusCell = row.querySelector('.status-cell');
-        const actionsCell = row.querySelector('.actions-cell');
-
-        if (data.status === 'completed') {
-            statusCell.innerHTML = `<span class="badge" style="background-color: var(--success);"><i class="fas fa-check me-1"></i>Completed</span>`;
-            actionsCell.innerHTML = `<button class="btn btn-sm btn-outline-light" onclick="viewTimetable(${generationId})"><i class="fas fa-eye"></i> View</button>`;
-        } else if (data.status === 'failed') {
-            statusCell.innerHTML = `<span class="badge" style="background-color: var(--danger);"><i class="fas fa-times me-1"></i>Failed</span>`;
-            actionsCell.innerHTML = `<span class="text-danger small">Generation failed.</span>`;
-        }
-    }
+});
 </script>
 {% endblock %}
 

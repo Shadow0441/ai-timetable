@@ -1,182 +1,251 @@
-{% extends "base.html" %}
+{% extends "layout.html" %}
 {% block title %}Settings - TimeWeave AI{% endblock %}
 
-{% block content %}
+{% block head_styles %}
 <style>
-    /* This design is a direct and precise match to your login/dashboard style reference */
-    .settings-container {
-        padding-top: 2rem;
-        animation: fadeInUp 0.6s ease-out;
-    }
-
-    .glass-card {
+    .content-card {
         background: var(--card-bg);
-        backdrop-filter: blur(20px);
         border: 1px solid var(--border);
-        border-radius: 20px;
         padding: 2rem;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-radius: 1rem;
+        margin-bottom: 2rem;
+        height: 100%;
     }
-    .glass-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 25px 70px rgba(0, 0, 0, 0.7);
+    .card-title {
+        color: var(--text-primary);
+        font-weight: 600;
+        margin-bottom: 0.25rem;
     }
-
-    .form-control {
+    .card-subtitle {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+    }
+    .form-label {
+        color: var(--text-secondary);
+        margin-bottom: 0.5rem;
+    }
+    .form-control, .form-select {
         background: transparent;
         border: 1px solid var(--border);
         border-radius: 12px;
-        padding: 1rem;
+        padding: 0.75rem 1rem;
         color: var(--text-primary);
         transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
-    .form-control:focus {
+    .form-control:focus, .form-select:focus {
         border-color: var(--accent);
-        box-shadow: 0 0 0 3px rgba(157, 78, 221, 0.2);
-    }
-
-    .btn-submit {
-        background: linear-gradient(135deg, var(--accent), var(--accent-alt));
-        border: none;
-        color: #fff;
-        font-weight: 600;
-        padding: 0.85rem 1.5rem;
-        border-radius: 12px;
-        transition: all 0.2s ease;
-    }
-    .btn-submit:hover {
-        transform: translateY(-2px) scale(1.02);
-        box-shadow: 0 6px 20px rgba(157, 78, 221, 0.4);
-    }
-
-    .student-list-group {
-        max-height: 250px;
-        overflow-y: auto;
-    }
-    .list-group-item {
-        background-color: rgba(255, 255, 255, 0.05);
-        border-color: var(--border);
+        box-shadow: 0 0 0 3px rgba(157,78,221,0.2);
+        background-color: var(--background-dark);
         color: var(--text-primary);
     }
-
-    hr {
-        border-color: var(--border);
-        opacity: 0.25;
+    .btn-submit {
+      background: linear-gradient(135deg, var(--accent), var(--accent-alt));
+      border: none;
+      color: #fff;
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      transition: all 0.2s ease;
     }
-
-    @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(157,78,221,0.4);
+    }
+    .schema-section {
+        border-left: 3px solid var(--accent-alt);
+        padding-left: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .table-dark-custom th, .table-dark-custom td {
+        white-space: nowrap;
+    }
+    /* FIX: Ensures cards in the same row have equal height */
+    .row.match-height {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .row.match-height > [class*='col-'] {
+        display: flex;
+        flex-direction: column;
+    }
+    .row.match-height .content-card {
+        flex-grow: 1;
     }
 </style>
+{% endblock %}
 
-<div class="settings-container">
-    <div class="row g-4">
-        <div class="col-lg-7">
-            <div class="glass-card mb-4">
-                <h4 class="mb-3"><i class="fas fa-university me-2" style="color: var(--accent);"></i>Institute Details</h4>
-                <form action="{{ url_for('update_institute_settings') }}" method="POST">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <div class="form-floating">
-                                <input type="text" class="form-control" id="institute_name" name="institute_name" value="{{ institute.name }}" required>
-                                <label for="institute_name">Institute Name</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                             <div class="form-floating">
-                                <input type="text" class="form-control" id="username" name="username" value="{{ institute.username }}" required>
-                                <label for="username">Username</label>
-                            </div>
-                        </div>
+{% block content %}
+<div class="row match-height">
+    <!-- Left Column for General Settings & Student Management -->
+    <div class="col-lg-5 mb-4">
+        <div class="content-card">
+            <h4 class="card-title"><i class="fas fa-sliders-h me-2 text-accent"></i>General Settings</h4>
+            <p class="card-subtitle">Configure core timetable parameters.</p>
+            <form method="POST" action="{{ url_for('settings') }}">
+                <input type="hidden" name="form_type" value="general_settings">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="total_rooms" class="form-label">Total Classrooms</label>
+                        <input type="number" class="form-control" id="total_rooms" name="total_rooms" value="{{ institute.settings.total_rooms }}" required>
                     </div>
-                     <div class="form-floating mb-3">
-                        <input type="email" class="form-control" id="email" name="email" value="{{ institute.email }}" required>
-                        <label for="email">Official Email</label>
+                    <div class="col-md-6 mb-3">
+                        <label for="total_labs" class="form-label">Total Labs</label>
+                        <input type="number" class="form-control" id="total_labs" name="total_labs" value="{{ institute.settings.total_labs }}" required>
                     </div>
-                    <div class="form-floating mb-3">
-                        <input type="text" class="form-control" id="db_url" name="db_url" value="{{ institute.db_url or '' }}" placeholder="Database Connection URL">
-                        <label for="db_url">Database Connection URL</label>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="start_time" class="form-label">Start Time</label>
+                        <input type="time" class="form-control" id="start_time" name="start_time" value="{{ institute.settings.start_time }}" required>
                     </div>
-                    <button type="submit" class="btn-submit"><i class="fas fa-save me-2"></i>Save Institute Details</button>
-                </form>
-            </div>
-
-            <div class="glass-card">
-                 <h4 class="mb-3"><i class="fas fa-project-diagram me-2" style="color: var(--accent);"></i>Database Schema Mapping</h4>
-                 <form action="{{ url_for('update_schema_settings') }}" method="POST">
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <label class="form-label text-secondary small">Courses</label>
-                            <input type="text" class="form-control mb-2" name="courses_table" placeholder="Table (e.g., courses)" value="{{ config.get('courses', {}).get('table', '') }}" required>
-                            <input type="text" class="form-control" name="courses_col_name" placeholder="Column (e.g., name)" value="{{ config.get('courses', {}).get('col_name', '') }}" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label text-secondary small">Faculty</label>
-                            <input type="text" class="form-control mb-2" name="faculty_table" placeholder="Table (e.g., faculty)" value="{{ config.get('faculty', {}).get('table', '') }}" required>
-                            <input type="text" class="form-control" name="faculty_col_name" placeholder="Column (e.g., name)" value="{{ config.get('faculty', {}).get('col_name', '') }}" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label text-secondary small">Rooms</label>
-                            <input type="text" class="form-control mb-2" name="rooms_table" placeholder="Table (e.g., rooms)" value="{{ config.get('rooms', {}).get('table', '') }}" required>
-                            <input type="text" class="form-control" name="rooms_col_name" placeholder="Column (e.g., name)" value="{{ config.get('rooms', {}).get('col_name', '') }}" required>
-                        </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="end_time" class="form-label">End Time</label>
+                        <input type="time" class="form-control" id="end_time" name="end_time" value="{{ institute.settings.end_time }}" required>
                     </div>
-                    <hr>
-                    <label class="form-label text-secondary small">Course-Faculty Mapping Table</label>
-                    <div class="row">
-                        <div class="col-md-4">
-                             <input type="text" class="form-control" name="map_table" placeholder="Mapping Table" value="{{ config.get('map', {}).get('table', '') }}" required>
-                        </div>
-                        <div class="col-md-4">
-                             <input type="text" class="form-control" name="map_col_course_fk" placeholder="Course Foreign Key" value="{{ config.get('map', {}).get('col_course_fk', '') }}" required>
-                        </div>
-                        <div class="col-md-4">
-                             <input type="text" class="form-control" name="map_col_faculty_fk" placeholder="Faculty Foreign Key" value="{{ config.get('map', {}).get('col_faculty_fk', '') }}" required>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn-submit mt-3"><i class="fas fa-link me-2"></i>Save Schema & Retrain</button>
-                 </form>
-            </div>
+                </div>
+                <button type="submit" class="btn-submit w-100 mt-3">
+                    <i class="fas fa-save me-2"></i>Save General Settings
+                </button>
+            </form>
         </div>
+    </div>
 
-        <div class="col-lg-5">
-            <div class="glass-card h-100">
-                <h4 class="mb-3"><i class="fas fa-users me-2" style="color: var(--accent);"></i>Student Management</h4>
-                <form action="{{ url_for('add_student') }}" method="POST">
-                    <div class="form-floating mb-3">
-                        <input type="text" class="form-control" id="student_name" name="student_name" placeholder="Student Full Name" required>
-                        <label for="student_name">Student Full Name</label>
+    <!-- Right Column for DB Schema Mapping -->
+    <div class="col-lg-7 mb-4">
+        <div class="content-card">
+            <h4 class="card-title"><i class="fas fa-database me-2 text-accent"></i>Database Schema Mapping</h4>
+            <p class="card-subtitle">
+                <i class="fas fa-info-circle me-1"></i>
+                Our system will first try to auto-detect a standard schema. Use this form only if that fails.
+            </p>
+
+            <form method="POST" action="{{ url_for('settings') }}">
+                <input type="hidden" name="form_type" value="schema_settings">
+
+                <div class="schema-section">
+                    <h5>Subjects</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-2"><input type="text" class="form-control" name="s_table" placeholder="Table Name (e.g., subjects)" value="{{ config.get('subjects', {}).get('table') }}"></div>
+                        <div class="col-md-6 mb-2"><input type="text" class="form-control" name="s_name" placeholder="Subject Name Column" value="{{ config.get('subjects', {}).get('name') }}"></div>
                     </div>
-                    <div class="form-floating mb-3">
-                        <input type="text" class="form-control" id="student_username" name="student_username" placeholder="Student Username" required>
-                        <label for="student_username">Student Username</label>
+                    <div class="row mt-2">
+                        <div class="col-md-6 mb-2"><input type="text" class="form-control" name="s_branch_fk" placeholder="Branch Foreign Key" value="{{ config.get('subjects', {}).get('branch_fk') }}"></div>
+                        <div class="col-md-6 mb-2"><input type="text" class="form-control" name="s_year" placeholder="Year Column" value="{{ config.get('subjects', {}).get('year') }}"></div>
                     </div>
-                    <div class="form-floating mb-3">
-                        <input type="password" class="form-control" id="password" name="password" placeholder="Create Password" required>
-                        <label for="password">Create Password</label>
+                </div>
+
+                <div class="schema-section">
+                    <h5>Branches & Courses</h5>
+                    <div class="row">
+                        <div class="col-md-4 mb-2"><input type="text" class="form-control" name="b_table" placeholder="Branches Table" value="{{ config.get('branches', {}).get('table') }}"></div>
+                        <div class="col-md-4 mb-2"><input type="text" class="form-control" name="b_name" placeholder="Branch Name Column" value="{{ config.get('branches', {}).get('name') }}"></div>
+                        <div class="col-md-4 mb-2"><input type="text" class="form-control" name="b_course_fk" placeholder="Course Foreign Key" value="{{ config.get('branches', {}).get('course_fk') }}"></div>
                     </div>
-                    <button type="submit" class="btn-submit w-100"><i class="fas fa-user-plus me-2"></i>Add Student</button>
-                </form>
-                <hr>
-                <h5 class="mb-3 text-secondary">Existing Students</h5>
-                {% if students %}
-                    <ul class="list-group student-list-group">
-                        {% for student in students %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span><i class="fas fa-user-graduate me-2 text-secondary"></i> {{ student.name }}</span>
-                                <small class="text-secondary">@{{ student.username }}</small>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <div class="text-center text-secondary py-4">
-                        <p>No students have been added yet.</p>
+                     <div class="row mt-2">
+                        <div class="col-md-6 mb-2"><input type="text" class="form-control" name="c_table" placeholder="Courses Table" value="{{ config.get('courses', {}).get('table') }}"></div>
+                        <div class="col-md-6 mb-2"><input type="text" class="form-control" name="c_name" placeholder="Course Name Column" value="{{ config.get('courses', {}).get('name') }}"></div>
                     </div>
-                {% endif %}
+                </div>
+
+                <div class="schema-section">
+                     <h5>Faculty, Rooms, & Mapping</h5>
+                     <div class="row">
+                        <div class="col-md-6 mb-2"><input type="text" class="form-control" name="f_table" placeholder="Faculty Table" value="{{ config.get('faculty', {}).get('table') }}"></div>
+                        <div class="col-md-6 mb-2"><input type="text" class="form-control" name="f_name" placeholder="Faculty Name Column" value="{{ config.get('faculty', {}).get('name') }}"></div>
+                    </div>
+                     <div class="row mt-2">
+                        <div class="col-md-6 mb-2"><input type="text" class="form-control" name="r_table" placeholder="Rooms Table" value="{{ config.get('rooms', {}).get('table') }}"></div>
+                        <div class="col-md-6 mb-2"><input type="text" class="form-control" name="r_name" placeholder="Room Name Column" value="{{ config.get('rooms', {}).get('name') }}"></div>
+                    </div>
+                     <div class="row mt-2">
+                        <div class="col-md-4 mb-2"><input type="text" class="form-control" name="map_table" placeholder="Faculty-Subject Junction Table" value="{{ config.get('map', {}).get('table') }}"></div>
+                        <div class="col-md-4 mb-2"><input type="text" class="form-control" name="map_s_fk" placeholder="Subject Foreign Key" value="{{ config.get('map', {}).get('subject_fk') }}"></div>
+                        <div class="col-md-4 mb-2"><input type="text" class="form-control" name="map_f_fk" placeholder="Faculty Foreign Key" value="{{ config.get('map', {}).get('faculty_fk') }}"></div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit w-100 mt-3">
+                    <i class="fas fa-save me-2"></i>Save Manual Schema
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- FIX: Moved student management into a full-width row at the bottom for better layout -->
+    <div class="col-12">
+        <div class="content-card">
+             <div class="row">
+                <div class="col-md-6">
+                    <h4 class="card-title"><i class="fas fa-user-plus me-2 text-accent"></i>Add New Student</h4>
+                    <p class="card-subtitle">Onboard students to the portal.</p>
+                    <form method="POST" action="{{ url_for('add_student') }}">
+                         <div class="mb-3">
+                            <label for="name" class="form-label">Student Name</label>
+                            <input type="text" class="form-control" id="name" name="name" placeholder="Full name" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label for="admission_id" class="form-label">Admission ID</label>
+                                <input type="text" class="form-control" id="admission_id" name="admission_id" placeholder="Student's unique ID" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="year" class="form-label">Year</label>
+                                <input type="number" class="form-control" id="year" name="year" placeholder="e.g., 1" required min="1" max="5">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Create a temporary password" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="course" class="form-label">Course</label>
+                                <input type="text" class="form-control" id="course" name="course" placeholder="e.g., B.Tech" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="branch" class="form-label">Branch</label>
+                                <input type="text" class="form-control" id="branch" name="branch" placeholder="e.g., Computer Science" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-submit w-100 mt-2">
+                            <i class="fas fa-plus-circle me-2"></i>Add Student
+                        </button>
+                    </form>
+                </div>
+                <div class="col-md-6">
+                    <h4 class="card-title"><i class="fas fa-users me-2 text-accent"></i>Existing Students</h4>
+                    <p class="card-subtitle">A list of all registered students.</p>
+                    {% if institute.students %}
+                    <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
+                        <table class="table table-dark-custom">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Admission ID</th>
+                                    <th>Branch</th>
+                                    <th>Year</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in institute.students %}
+                                <tr>
+                                    <td>{{ student.name }}</td>
+                                    <td>{{ student.admission_id }}</td>
+                                    <td>{{ student.branch }}</td>
+                                    <td>{{ student.year }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-secondary text-center mt-5">No students have been added yet.</p>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
+

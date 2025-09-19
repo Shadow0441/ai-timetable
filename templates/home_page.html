@@ -1,0 +1,73 @@
+{% extends "layout.html" %}
+{% block title %}Welcome - TimeWeave AI{% endblock %}
+
+{% block head_styles %}
+<style>
+    .hero-section {
+        min-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        position: relative;
+        z-index: 2;
+    }
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 600;
+        background: linear-gradient(135deg, #f1f1f1, #b5b5b5);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: fadeInDown 1s ease-out;
+    }
+    .hero-subtitle {
+        font-size: 1.2rem;
+        color: var(--text-secondary);
+        max-width: 600px;
+        margin-bottom: 2rem;
+        animation: fadeInUp 1s ease-out 0.5s;
+        animation-fill-mode: backwards;
+    }
+    .btn-portal {
+        background: linear-gradient(135deg, var(--accent), var(--accent-alt));
+        border: none;
+        color: #fff;
+        font-weight: 600;
+        padding: 0.85rem 2rem;
+        border-radius: 50px;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        margin: 0 0.5rem;
+        animation: zoomIn 1s ease-out 1s;
+        animation-fill-mode: backwards;
+    }
+    .btn-portal:hover {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 8px 25px rgba(157,78,221,0.4);
+    }
+    .btn-portal.student {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+    }
+
+    @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes zoomIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <h1 class="hero-title mb-3">Intelligent Timetabling, Unleashed.</h1>
+    <p class="hero-subtitle">
+        A Platform to generate perfectly optimized academic schedules in minutes.
+        Describe your constraints in plain English and let TimeWeave handle the complexity.
+    </p>
+    <div>
+        <a href="{{ url_for('institute_login') }}" class="btn-portal"><i class="fas fa-university me-2"></i> Institute Portal</a>
+        <a href="{{ url_for('student_login') }}" class="btn-portal student"><i class="fas fa-user-graduate me-2"></i> Student Portal</a>
+    </div>
+</div>
+{% endblock %}
+

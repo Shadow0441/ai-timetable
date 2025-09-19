@@ -34,7 +34,7 @@
             position: relative;
         }
 
-        /* Gradient blobs from your design */
+        /* Gradient blobs for background effect */
         .bg-blob {
             position: fixed;
             border-radius: 50%;
@@ -82,15 +82,16 @@
         .alert-info { border-left-color: var(--info); }
         .alert-warning { border-left-color: var(--warning); }
     </style>
+    {% block head_styles %}{% endblock %}
 </head>
 <body>
     <div class="bg-blob one"></div>
     <div class="bg-blob two"></div>
 
-    {% if session.user_id and session.get('user_type') == 'institute' %}
+    {% if 'institute_id' in session or 'student_id' in session %}
     <nav class="navbar navbar-expand-lg navbar-timeweave sticky-top">
         <div class="container">
-            <a class="navbar-brand text-white d-flex align-items-center" href="{{ url_for('dashboard') }}">
+            <a class="navbar-brand text-white d-flex align-items-center" href="{{ url_for('home') }}">
                  <svg class="brand-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                     <circle class="node" cx="20" cy="50" r="10"/><circle class="node" cx="80" cy="50" r="10"/>
                     <circle class="node" cx="50" cy="20" r="10"/><circle class="node" cx="50" cy="80" r="10"/>
@@ -100,8 +101,12 @@
                 <span class="brand-text">TimeWeave AI</span>
             </a>
             <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="{{ url_for('dashboard') }}"><i class="fas fa-tachometer-alt me-1"></i>Dashboard</a>
-                <a class="nav-link" href="{{ url_for('settings') }}"><i class="fas fa-cog me-1"></i>Settings</a>
+                {% if 'institute_id' in session %}
+                    <a class="nav-link" href="{{ url_for('dashboard') }}"><i class="fas fa-tachometer-alt me-1"></i>Dashboard</a>
+                    <a class="nav-link" href="{{ url_for('settings') }}"><i class="fas fa-cog me-1"></i>Settings</a>
+                {% elif 'student_id' in session %}
+                    <a class="nav-link" href="{{ url_for('student_dashboard') }}"><i class="fas fa-calendar-check me-1"></i>My Timetable</a>
+                {% endif %}
                 <a class="nav-link" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-1"></i>Logout</a>
             </div>
         </div>

@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %}Student Login - TimeWeave AI{% endblock %}
+{% block title %}Login - TimeWeave AI{% endblock %}
 
 {% block head_styles %}
 <style>
@@ -72,30 +72,30 @@
   <div class="auth-card">
     <div id="mouse-glow"></div>
     <div class="text-center mb-4">
-      <i class="fas fa-user-graduate fa-3x" style="color: var(--accent);"></i>
-      <h1 class="brand-title">Student Portal</h1>
-      <p class="brand-sub">Access your timetable</p>
+      <i class="fas fa-sign-in-alt fa-3x" style="color: var(--accent);"></i>
+      <h1 class="brand-title">Institute Login</h1>
+      <p class="brand-sub">Welcome back to TimeWeave AI</p>
     </div>
 
-    <form method="POST" action="{{ url_for('student_login') }}">
+    <form method="POST" action="{{ url_for('institute_login') }}">
       <div class="form-floating mb-3">
-        <input type="text" class="form-control" id="admission_id" name="admission_id" placeholder="Admission ID" required>
-        <label for="admission_id">Admission ID</label>
+        <input type="text" class="form-control" id="username" name="username" placeholder="Username" required>
+        <label for="username">Username</label>
       </div>
       <div class="form-floating mb-4">
         <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
         <label for="password">Password</label>
       </div>
       <button type="submit" class="btn-submit">
-        <i class="fas fa-lock-open me-2"></i> View Timetable
+        <i class="fas fa-lock-open me-2"></i> Login
       </button>
     </form>
 
     <div class="text-center mt-4">
-        <p class="text-secondary small">
-          Not a student? <a href="{{ url_for('institute_login') }}">Institute Login</a>
-        </p>
-      </div>
+      <p class="text-secondary small">
+        Don't have an account? <a href="{{ url_for('institute_signup') }}">Sign Up</a>
+      </p>
+    </div>
   </div>
 </div>
 {% endblock %}
