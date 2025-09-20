@@ -161,6 +161,9 @@ def generate_timetable():
 
     try:
         schema_config = json.loads(institute.config_json) if institute.config_json else None
+        if schema_config and not isinstance(schema_config, dict):
+            flash('Database schema config is invalid. Please re-save it in Settings.', 'danger')
+            return redirect(url_for('settings'))
         full_df, success, message = connect_and_fetch(institute.db_url, schema_config)
 
         if not success:

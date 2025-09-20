@@ -82,9 +82,13 @@
         <input type="text" class="form-control" id="username" name="username" placeholder="Username" required>
         <label for="username">Username</label>
       </div>
-      <div class="form-floating mb-4">
+      <div class="form-floating mb-4 position-relative">
         <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
         <label for="password">Password</label>
+        <button type="button" id="togglePassword" 
+                style="position:absolute; right:10px; top:50%; transform:translateY(-50%); border:none; background:none; cursor:pointer;">
+          <i class="fas fa-eye"></i>
+        </button>
       </div>
       <button type="submit" class="btn-submit">
         <i class="fas fa-lock-open me-2"></i> Login
@@ -111,6 +115,20 @@ document.addEventListener('mousemove', e => {
     glow.style.top = `${e.clientY - rect.top}px`;
   }
 });
+
+// Toggle password visibility
+document.getElementById('togglePassword').addEventListener('click', function () {
+  const passwordInput = document.getElementById('password');
+  const icon = this.querySelector('i');
+  if (passwordInput.type === 'password') {
+    passwordInput.type = 'text';
+    icon.classList.remove('fa-eye');
+    icon.classList.add('fa-eye-slash');
+  } else {
+    passwordInput.type = 'password';
+    icon.classList.remove('fa-eye-slash');
+    icon.classList.add('fa-eye');
+  }
+});
 </script>
 {% endblock %}
-

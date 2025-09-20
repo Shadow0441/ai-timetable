@@ -1,22 +1,37 @@
+
 import pandas as pd
 from sqlalchemy import create_engine, text, exc, inspect
 import argparse
 import json
+from typing import Optional, Tuple, Dict, Any, List
 
-def build_query_from_map(schema_config):
-    """Dynamically builds a SQL JOIN query from a user-defined schema map."""
+def build_query_from_map(schema_config: Dict[str, Any]) -> Tuple[Optional[str], str]:
+    """
+    Dynamically builds a SQL JOIN query from a user-defined schema map.
+
+    Args:
+        schema_config: A dictionary defining table and column names.
+
+    Returns:
+        A tuple containing the SQL query string (or None on failure) and a status message.
+    """
+    # This check prevents the "'str' object has no attribute 'get'" error.
+    if not isinstance(schema_config, dict):
+        return None, "Database schema configuration is invalid; it should be a dictionary-like object."
+
     s, b, c, f, r, m = [schema_config.get(k, {}) for k in ['subjects', 'branches', 'courses', 'faculty', 'rooms', 'map']]
 
     if not all([s.get('table'), s.get('name'), b.get('table'), b.get('name'), f.get('table'), f.get('name')]):
-        return None, "Manual schema config is incomplete. Please define at least subjects, branches, and faculty tables and name columns."
+        return None, "Schema config incomplete. Define at least subjects, branches, and faculty tables/columns."
 
+    # Using .get() with fallbacks makes the user's config more flexible
     query = f"""
     SELECT
         s.{s['name']} AS subject,
         b.{b['name']} AS branch,
-        s.{s.get('year', 'year_id')} AS year_of_study,
+        s.{s.get('year', 'year_of_study')} AS year_of_study,
         c.{c.get('name', 'course_name')} AS course,
-        f.{f.get('name', 'full_name')} AS faculty,
+        f.{f['name']} AS faculty,
         r.{r.get('name', 'room_name')} AS room,
         s.{s.get('lectures', 'num_lectures')} AS num_lectures
     FROM
@@ -30,8 +45,8 @@ def build_query_from_map(schema_config):
     return query, "Successfully built query from manual schema."
 
 
-def get_auto_detect_query(engine, schema_prefix):
-    """Builds the query for the known 'public' or 'university' schema."""
+def get_auto_detect_query(schema_prefix: str) -> str:
+    """Builds the query for a known, standard schema (e.g., 'public')."""
     return f"""
     SELECT
         s.subject_name AS subject,
@@ -48,74 +63,97 @@ def get_auto_detect_query(engine, schema_prefix):
     LEFT JOIN {schema_prefix}.academic_years ay ON s.year_id = ay.year_id
     LEFT JOIN {schema_prefix}.enrollments e ON s.subject_id = e.subject_id
     LEFT JOIN {schema_prefix}.teachers t ON e.teacher_id = t.teacher_id
-    LEFT JOIN {schema_prefix}.rooms r ON 1=1 -- Simple join to get all rooms, can be refined
+    LEFT JOIN {schema_prefix}.rooms r ON 1=1
     """
 
-def connect_and_fetch(db_uri, schema_config=None):
+def connect_and_fetch(db_uri: str, schema_config: Optional[Dict[str, Any]] = None) -> Tuple[Optional[pd.DataFrame], bool, str]:
     """
-    Connects to a database, attempting to auto-detect a known schema first,
-    then falling back to a user-provided schema map.
+    Connects to a database, fetches academic data, and returns it as a DataFrame.
+
+    It first attempts to auto-detect a known schema, then falls back to the user-provided map.
+
+    Args:
+        db_uri: The SQLAlchemy database connection string.
+        schema_config: A dictionary defining a custom database schema.
+
+    Returns:
+        A tuple containing (DataFrame or None, success_boolean, status_message).
     """
-    engine = create_engine(db_uri)
-    query = None
+    try:
+        engine = create_engine(db_uri)
+        inspector = inspect(engine)
+    except Exception as e:
+        return None, False, f"Invalid Database URL: {e}"
+
+    query: Optional[str] = None
     status_message = ""
 
+    # 1. Attempt to auto-detect a known schema
     try:
-        inspector = inspect(engine)
         if inspector.has_table("subjects", schema="public"):
-            query = get_auto_detect_query(engine, "public")
+            query = get_auto_detect_query("public")
             status_message = "Successfully auto-detected 'public' schema."
         elif inspector.has_table("subjects", schema="university"):
-            query = get_auto_detect_query(engine, "university")
+            query = get_auto_detect_query("university")
             status_message = "Successfully auto-detected 'university' schema."
     except Exception as e:
-        print(f"Schema auto-detection failed: {e}")
+        print(f"Schema auto-detection failed: {e}") # Log for debugging
 
+    # 2. If auto-detect fails, fall back to the user-provided manual schema
     if not query and schema_config:
         query, status_message = build_query_from_map(schema_config)
         if not query:
             return None, False, status_message
 
     if not query:
-        return None, False, "Could not determine which query to use. Please configure schema in settings."
+        return None, False, "Could not determine schema. Please configure it in settings."
 
+    # 3. Execute the chosen query
     try:
         with engine.connect() as connection:
             df = pd.read_sql(text(query), connection)
         if df.empty:
-            return df, True, "Query executed successfully but returned no data. Check database content and schema."
+            return df, True, "Query executed but returned no data. Check database content."
         return df, True, status_message
     except exc.SQLAlchemyError as e:
-        error_message = f"Database Error: {e.orig}. Please check your connection URL and schema configuration."
+        error_message = f"Database Error: {e.orig}. Check your connection URL and schema config."
         return None, False, error_message
     except Exception as e:
         return None, False, f"An unexpected error occurred: {e}"
 
 
-def filter_data_for_parser(df, branch_value, year_value):
+def filter_data_for_parser(df: pd.DataFrame, branch_value: str, year_value: int) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
     """
-    Cleans and structures a DataFrame, returning the structured data
-    and the actual matched branch name.
+    Filters the main DataFrame for a specific branch/year and structures it for the solver.
+
+    Args:
+        df: The complete DataFrame from the database.
+        branch_value: The user-provided branch name (e.g., "Computer Science").
+        year_value: The user-provided year (e.g., 2).
+
+    Returns:
+        A tuple containing (structured_data_dict or None, matched_branch_name or None).
     """
     if df is None or df.empty:
         return None, None
 
+    # This multi-pass logic makes branch matching flexible (full name, partial, or abbreviation)
     user_branch_lower = branch_value.lower()
-    unique_branches = df['branch'].dropna().unique()
-    matched_branch = None
+    unique_branches: List[str] = df['branch'].dropna().unique().tolist()
+    matched_branch: Optional[str] = None
 
-    for item in unique_branches:
-        if item.lower() == user_branch_lower:
-            matched_branch = item
+    for b in unique_branches:
+        if b.lower() == user_branch_lower:
+            matched_branch = b
             break
     if not matched_branch:
-        possible_matches = [item for item in unique_branches if user_branch_lower in item.lower()]
+        possible_matches = [b for b in unique_branches if user_branch_lower in b.lower()]
         if len(possible_matches) == 1: matched_branch = possible_matches[0]
     if not matched_branch:
-        for item in unique_branches:
-            abbreviation = "".join(word[0] for word in item.replace('-', ' ').split()).lower()
+        for b in unique_branches:
+            abbreviation = "".join(word[0] for word in b.replace('-', ' ').split()).lower()
             if abbreviation == user_branch_lower:
-                matched_branch = item
+                matched_branch = b
                 break
 
     if not matched_branch:
@@ -126,11 +164,11 @@ def filter_data_for_parser(df, branch_value, year_value):
     if filtered_df.empty:
         return None, matched_branch
 
+    # Structure data into the format required by the solver
     branch_subjects = {
         (branch, year): group['subject'].unique().tolist()
         for (branch, year), group in filtered_df.groupby(['branch', 'year_of_study'])
     }
-
     faculty_subjects = {
         faculty: group['subject'].unique().tolist()
         for faculty, group in filtered_df.groupby('faculty') if pd.notna(faculty)
@@ -141,13 +179,14 @@ def filter_data_for_parser(df, branch_value, year_value):
         "branch": filtered_df['branch'].dropna().unique().tolist(),
         "branch_subjects": branch_subjects,
         "faculty_subjects": faculty_subjects,
-        "rooms": df['room'].dropna().unique().tolist(),
+        "rooms": df['room'].dropna().unique().tolist(), # Get all rooms from institute
         "num_lectures": filtered_df.set_index('subject')['num_lectures'].to_dict()
     }
 
     return filtered_data, matched_branch
 
 
+# This block allows the script to be run from the command line for testing.
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Fetch and filter timetable data from a database.")
     parser.add_argument("db_uri", help="SQLAlchemy database URI (e.g., 'sqlite:///timetable.db')")
@@ -169,4 +208,3 @@ if __name__ == '__main__':
             print(full_df.head())
     else:
         print(f"\n--- Operation Failed ---\n{message}")
-
