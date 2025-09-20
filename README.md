@@ -1,2 +1,2 @@
 # ai-timetable
-This creates a timetable using custom RL Model and ORtools
+This creates a timetable using Constraints Programming ORtools
